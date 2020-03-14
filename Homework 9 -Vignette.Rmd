@@ -5,6 +5,16 @@ date: "3/12/2020"
 output: html_document
 ---
 
+# Problem 1
+
+The github repository was created at https://github.com/tatkeller/ANGSD_final_project.
+
+# Problem 2
+
+## Indexing
+
+I began by indexing the human genome 38, with the following script.
+
 ```{bash eval=FALSE}
 #! /bin/bash
 
@@ -23,6 +33,10 @@ STAR --runMode genomeGenerate \
 rm -rf /scratchLocal/tak76
 
 ```
+
+## Alignment
+
+I created an alignment script, which uses a for loop to call STAR on each sample. The samples for the human genome are very large, so I began with 3 samples. The combined time of indexing and aligning took around ~12 hours.
 
 ```{bash eval=FALSE}
 #!/bin/bash
@@ -48,7 +62,11 @@ for file in $FILES; do
 done
 ```
 
+# Problem 3
 
+## Read Counts
+
+Finally, I made a script to call feature counts on the samples that I aligned. 
 ```{bash eval=FALSE}
 #! /bin/bash
 
@@ -59,6 +77,9 @@ featureCounts -a /home/tak76/tak76/finalProject/hg38/hg38.refGene.gtf \
               /home/tak76/tak76/finalProject/alignments/*.bam
 ```
 
+# Problem 4
+
+I read the read counts summary into R, and first created a bar chart of the 3 samples and their distrubtion of assigned to unassigned reads. The distribution shows that each sample has a majority of reas unassigned (no feature). SRR4888616 and SRR4888618 have around the same amount of assigned reads.
 
 ```{r}
 
@@ -75,12 +96,6 @@ assigned = genes[genes$Status == 'Assigned',]
 unassigned_nofeatures = genes[genes$Status == 'Unassigned_NoFeatures',]
 unassigned_ambiguity = genes[genes$Status == 'Unassigned_Ambiguity',]
 
-print(assigned)
-
-print(unassigned_nofeatures)
-
-print(unassigned_ambiguity)
-
 df = rbind(assigned,unassigned_nofeatures,unassigned_ambiguity)
 
 df = transpose(df)
@@ -89,43 +104,38 @@ df <- df[-1,]
 
 df$types = c('SRR4888615','SRR4888616','SRR4888618')
 
-
 dfm <- melt(df[,c('types','Assigned','Unassigned_NoFeatures','Unassigned_Ambiguity')],id.vars = 1)
-
-
-print(dfm)
 
 ggplot(data = dfm, aes(x = types, y = as.integer(value), fill = variable)) + geom_bar(stat='identity', position='dodge')
 ```
 
-
+Next I read in the full read counts file into R. I performed some normalization measures and plotted some results. 
 
 ```{r}
 
 readcounts <- read.table("featureCounts.txt", header=TRUE)
-
-str(readcounts)
 orig_names <- names(readcounts)
 
+#Change file names to sample names
 names(readcounts)[7:9] = c('SRR4888615','SRR4888616','SRR4888618')
 
 library(DESeq2)
 
+
 row.names(readcounts) <- make.names(readcounts$Geneid)
 readcounts <- readcounts[ , -c(1:6)]
-head(readcounts)
 
 sample_info <- DataFrame(condition = gsub("_[0-9]+", "", names(readcounts)),row.names = names(readcounts) )
-str(sample_info)
 
 DESeq.ds <- DESeqDataSetFromMatrix(countData = readcounts,colData = sample_info,design = ~ condition)
 
-head(counts(DESeq.ds))
 
+#Sum the counts for each Gene per sample
 colSums(counts(DESeq.ds))
 
 colSums(counts(DESeq.ds)) %>% barplot
 
+#Plot the counts, as comparison 
 keep_genes <- rowSums(counts(DESeq.ds)) > 0
 DESeq.ds <- DESeq.ds[ keep_genes, ]
 ```
@@ -134,50 +144,52 @@ DESeq.ds <- DESeq.ds[ keep_genes, ]
 par(mfrow=c(1,2))
 DESeq.ds <- estimateSizeFactors(DESeq.ds)
 
+#Normalize the size factors of the samples
 counts.sf_normalized <- counts(DESeq.ds, normalized=TRUE)
 
+#Compare the normalized size factors to the read counts
 boxplot(counts.sf_normalized, main = "SF normalized", cex = .6)
-boxplot(counts(DESeq.ds), main = "read counts only", cex = .6)
+boxplot(counts(DESeq.ds), main = "read counts", cex = .6)
+```
 
+The ranges significantly decrease with the size factors normalized.
+
+```{r}
+
+DESeq.rlog <- rlog(DESeq.ds, blind = TRUE)
+rlog.norm.counts <- assay(DESeq.rlog)
+
+corr_coeff <- cor(rlog.norm.counts, method = "pearson")
+
+as.dist(1-corr_coeff, upper = TRUE) %>% as.matrix %>% pheatmap::pheatmap(., main = "Pearson correlation")
+
+```
+
+SRR4888618 and SRR4888616 correlate much closer to one another than they do to SRR4888615.
+
+```{r}
 par(mfrow=c(1,2))
-
-boxplot(log2(counts(DESeq.ds)+1), notch=TRUE, main = "Non-normalized read counts", ylab="log2(read counts)", cex = .6)
-## bp of size-factor normalized values
-boxplot(log2(counts(DESeq.ds, normalize= TRUE) +1), notch=TRUE, main = "Size-factor-normalized read counts", ylab="log2(read counts)", cex = .6)
 
 log.counts <- log2(counts(DESeq.ds, normalized = FALSE) + 1)
 assay(DESeq.ds, "log.counts") <- log2(counts(DESeq.ds, normalized = FALSE) + 1)
 log.norm.counts <- log2(counts(DESeq.ds, normalized=TRUE) + 1)
 assay(DESeq.ds, "log.norm.counts") <- log.norm.counts
 
-par(mfrow=c(1,3))
-
-DESeq.ds[, c("SRR4888615","SRR4888616")] %>% assay(., "log.norm.counts") %>% plot(., cex=.1, main = "SRR4888615 vs. SRR4888616")
-
-DESeq.ds[, c("SRR4888616","SRR4888618")] %>% assay(., "log.norm.counts") %>% plot(., cex=.1, main = "SRR4888616 vs SRR4888618")
-
-DESeq.ds[, c("SRR4888615","SRR4888618")] %>% assay(., "log.norm.counts") %>% plot(., cex=.1, main = "SRR4888615 vs SRR4888618")
-
-DESeq.rlog <- rlog(DESeq.ds, blind = TRUE)
-rlog.norm.counts <- assay(DESeq.rlog)
-
-
-```
-
-```{r}
-
-corr_coeff <- cor(rlog.norm.counts, method = "pearson")
-
-as.dist(1-corr_coeff, upper = TRUE) %>% as.matrix %>% pheatmap::pheatmap(., main = "Pearson correlation")
-
-par(mfrow=c(1,2))
-
 as.dist(1 - corr_coeff) %>% hclust %>% plot( ., labels = colnames(rlog.norm.counts), main = "rlog transformed read counts")
 
 as.dist( 1 - cor(log.norm.counts, method = "pearson")) %>% hclust %>% plot( ., labels = colnames(log.norm.counts), main = "no rlog")
+
+```
+
+The correlation can be shown through a dendrogram, which will be more telling with an increase in the number of samples.
+
+```{r}
 
 rv <- rowVars(assay(DESeq.rlog))
 top_variable <- order(rv, decreasing = TRUE)[seq_len(500)]
 pca <- prcomp(t(assay(DESeq.rlog)[top_variable, ]))
 plotPCA(DESeq.rlog)
 ```
+
+
+Finally, a principal compnents analysis graph shows again how SRR4888618 and SRR4888616 are more similar to eachother than to SRR4888615, though the second principcal component identifies differences between SRR4888618 and SRR4888616 as well. Additional samples will need to be aligned over time in order to understand more of what is happening here.
