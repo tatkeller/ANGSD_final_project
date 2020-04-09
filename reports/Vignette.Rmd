@@ -5,26 +5,49 @@ date: "4/9/2020"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Plot Feature Counts
+
+```{r}
+
+library(magrittr)
+library(data.table)
+library(ggplot2)
+library(reshape2)
+
+genes <- data.table::fread(file = '../featureCounts/featureCounts.txt.summary', header = TRUE)%>% as.data.frame
+genes
+originalNames <- names(genes)
+names(genes) <- gsub(".*(Acute_Fatal|Acute_Survivor)(_[0-9]+).*", "\\1\\2", originalNames)
+newNames = names(genes)
+
+assigned = genes[genes$Status == 'Assigned',]
+unassigned_nofeatures = genes[genes$Status == 'Unassigned_NoFeatures',]
+unassigned_ambiguity = genes[genes$Status == 'Unassigned_Ambiguity',]
+
+df = rbind(assigned,unassigned_nofeatures,unassigned_ambiguity)
+
+df = transpose(df)
+names(df) <- df[1,]
+df <- df[-1,]
+
+df$types = newNames[-1]
+
+dfm <- melt(df[,c('types','Assigned','Unassigned_NoFeatures','Unassigned_Ambiguity')],id.vars = 1)
+
+ggplot(data = dfm, aes(x = types, y = as.integer(value), fill = variable)) + geom_bar(stat='identity', position='dodge')
+
+
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+genesFull <- data.table::fread(file = '../featureCounts/featureCounts.txt', header = TRUE)%>% as.data.frame
+originalNames <- names(genesFull)
+names(genesFull) <- gsub(".*(Acute_Fatal|Acute_Survivor)(_[0-9]+).*", "\\1\\2", originalNames)
+newNames = names(genesFull)
+str(genesFull)
+library(DESeq2)
+row.names(readcounts) <- make.names(readcounts$Geneid)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
