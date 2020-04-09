@@ -1,3 +1,4 @@
+vim: syntax=shell
 #! /bin/bash -l
 
 #SBATCH --partition=angsd_class
