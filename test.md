@@ -1,6 +1,4 @@
-#! /bin/bash -l
-
-spack load star@2.7.0e
+#! /bin/bash
 
 FILENAME=`ls rawFastq`
 echo $FILENAME
