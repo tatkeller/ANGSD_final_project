@@ -109,6 +109,8 @@ msd_plot <- vsn::meanSdPlot( rlog.norm.counts, ranks=FALSE, plot = FALSE)
 msd_plot$gg + ggtitle("rlog transformation") + coord_cartesian(ylim = c(0,3))
 ```
 
+# PCA
+
 ```{r}
 rlog.norm.counts = rlog.norm.counts[ , order(colnames(rlog.norm.counts))]
 corr_coeff <- cor(rlog.norm.counts, method = "pearson")
@@ -128,4 +130,49 @@ top_variable <- order(rv, decreasing = TRUE)[seq_len(500)]
 pca <- prcomp(t(assay(DESeq.rlog)[top_variable, ]))
 head(pca$x)
 plotPCA(DESeq.rlog)
+```
+
+# DE Analysis
+
+```{r}
+DESeq.ds$condition <- relevel(DESeq.ds$condition, ref="Acute_Survivor")
+DESeq.ds <- DESeq(DESeq.ds)
+DESeq.ds <- estimateSizeFactors(DESeq.ds)
+DESeq.ds <- estimateDispersions(DESeq.ds)
+DESeq.ds <- nbinomWaldTest(DESeq.ds)
+```
+
+```{r}
+DGE.results <- results(DESeq.ds, independentFiltering = TRUE, alpha = 0.05)
+hist(DGE.results$pvalue, col="grey", border="white", xlab="", ylab="", main="frequencies of p-values\n(all genes)", cex = 0.4)
+DGE.results.sorted <- DGE.results[order(DGE.results$pvalue),]
+```
+```{r}
+table(DGE.results$pvalue < 0.05)
+head(DGE.results.sorted)
+plotCounts(DESeq.ds, gene="HSPA4L", normalized = TRUE)
+plotCounts(DESeq.ds, gene="TPMT", normalized = TRUE)
+plotCounts(DESeq.ds, gene="FRK", normalized = TRUE)
+plotCounts(DESeq.ds, gene="FRK", normalized = TRUE)
+plotCounts(DESeq.ds, gene="RAPGEF5", normalized = TRUE)
+plotCounts(DESeq.ds, gene="ERRFI1", normalized = TRUE)
+```
+
+```{r}
+DGEgenes <- rownames(subset(DGE.results.sorted, pvalue < 0.05))
+rlog.dge <- DESeq.rlog[DGEgenes,] %>% assay
+library(pheatmap)
+pheatmap(rlog.dge, scale="none", show_rownames = FALSE, main = "DGE (no scaling)")
+pheatmap(rlog.dge, scale="row", show_rownames = FALSE, main = "DGE (row-based z-score)")
+```
+
+
+```{r}
+plotMA(DGE.results, alpha = 0.05, main = "Test: p.adj.value < 0.05", ylim = c(-4,4))
+```
+
+```{r}
+library(EnhancedVolcano)
+vp1 <- EnhancedVolcano(DGE.results, lab = rownames(DGE.results), x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "Fatal / Survivor")
+print(vp1)
 ```
