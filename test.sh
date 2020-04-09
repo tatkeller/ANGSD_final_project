@@ -1,11 +1,5 @@
 #! /bin/bash -l
 
-#SBATCH --partition=angsd_class
-#SBATCH --nodes=1
-#SBATCH --ntasks=4
-#SBATCH --job-name=align
-#SBATCH --mem=40G
-
 spack load star@2.7.0e
 
 FILENAME=`ls rawFastq`
