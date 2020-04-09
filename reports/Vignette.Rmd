@@ -40,6 +40,7 @@ ggplot(data = dfm, aes(x = types, y = as.integer(value), fill = variable)) + geo
 
 ```
 
+# Full Feature Counts
 
 ```{r}
 genesFull <- data.table::fread(file = '../featureCounts/featureCounts.txt', header = TRUE)%>% as.data.frame
@@ -47,7 +48,84 @@ originalNames <- names(genesFull)
 names(genesFull) <- gsub(".*(Acute_Fatal|Acute_Survivor)(_[0-9]+).*", "\\1\\2", originalNames)
 newNames = names(genesFull)
 str(genesFull)
-library(DESeq2)
-row.names(readcounts) <- make.names(readcounts$Geneid)
+```
 
+# DESeq object
+
+```{r}
+library(DESeq2)
+row.names(genesFull) <- make.names(genesFull$Geneid)
+genesFull <- genesFull[ , -c(1:6)]
+sample_info <- DataFrame(condition = gsub("_[0-9]+", "", names(genesFull)),row.names = names(genesFull) )
+DESeq.ds <- DESeqDataSetFromMatrix(countData = genesFull,colData = sample_info,design = ~ condition)
+DESeq.ds
+head(counts(DESeq.ds))
+```
+
+# Remove genes with no reads
+
+```{r}
+keep_genes <- rowSums(counts(DESeq.ds)) > 0
+DESeq.ds <- DESeq.ds[ keep_genes, ]
+```
+
+
+```{r}
+DESeq.ds <- estimateSizeFactors(DESeq.ds) 
+plot( sizeFactors(DESeq.ds), colSums(counts(DESeq.ds)),ylab = "library sizes", xlab = "size factors", cex = .6 )
+par(mfrow=c(1,2))
+counts.sf_normalized <- counts(DESeq.ds, normalized=TRUE)
+boxplot(counts.sf_normalized, main = "SF normalized", cex = .6)
+boxplot(counts(DESeq.ds), main = "read counts only", cex = .6)
+```
+
+```{r}
+par(mfrow=c(1,2))
+boxplot(log2(counts(DESeq.ds)+1), notch=TRUE, main = "Non-normalized read counts", ylab="log2(read counts)", cex = .6)
+boxplot(log2(counts(DESeq.ds, normalize= TRUE) +1), notch=TRUE, main = "Size-factor-normalized read counts", ylab="log2(read counts)", cex = .6)
+```
+
+```{r}
+log.counts <- log2(counts(DESeq.ds, normalized = FALSE) + 1)
+assay(DESeq.ds, "log.counts") <- log2(counts(DESeq.ds, normalized = FALSE) + 1)
+log.norm.counts <- log2(counts(DESeq.ds, normalized=TRUE) + 1)
+assay(DESeq.ds, "log.norm.counts") <- log.norm.counts
+log.norm.counts <- log2(counts(DESeq.ds, normalized=TRUE) + 1)
+msd_plot <- vsn::meanSdPlot(log.norm.counts,ranks=FALSE,plot = FALSE)
+msd_plot$gg + ggtitle("Sequencing depth normalized log2(read counts)") + ylab("standard deviation")
+```
+
+
+```{r}
+DESeq.rlog <- rlog(DESeq.ds, blind = TRUE)
+par(mfrow=c(1,2))
+plot(log.norm.counts[,1:2], cex=.1,main = "size factor and log2-transformed")
+plot(assay(DESeq.rlog)[,1],assay(DESeq.rlog)[,2],cex=.1, main = "rlog transformed", xlab = colnames(assay(DESeq.rlog[,1])), ylab = colnames(assay(DESeq.rlog[,2])) )
+```
+
+```{r}
+rlog.norm.counts <- assay(DESeq.rlog)
+msd_plot <- vsn::meanSdPlot( rlog.norm.counts, ranks=FALSE, plot = FALSE)
+msd_plot$gg + ggtitle("rlog transformation") + coord_cartesian(ylim = c(0,3))
+```
+
+```{r}
+rlog.norm.counts = rlog.norm.counts[ , order(colnames(rlog.norm.counts))]
+corr_coeff <- cor(rlog.norm.counts, method = "pearson")
+as.dist(1-corr_coeff, upper = TRUE) %>% as.matrix %>% pheatmap::pheatmap(., main = "Pearson correlation")
+```
+
+```{r}
+par(mfrow=c(1,2))
+as.dist(1 - corr_coeff) %>% hclust %>% plot( ., labels = colnames(rlog.norm.counts), main = "rlog transformed read counts")
+as.dist( 1 - cor(log.norm.counts, method = "pearson")) %>% hclust %>% plot( ., labels = colnames(log.norm.counts), main = "no rlog")
+```
+
+
+```{r}
+rv <- rowVars(assay(DESeq.rlog))
+top_variable <- order(rv, decreasing = TRUE)[seq_len(500)]
+pca <- prcomp(t(assay(DESeq.rlog)[top_variable, ]))
+head(pca$x)
+plotPCA(DESeq.rlog)
 ```
