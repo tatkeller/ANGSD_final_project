@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#SBATCH --partition=angsd_class
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --job-name=fastq
+#SBATCH --mem=20G
+
 spack load fastqc
 
 for file in ../fastq/*; do
@@ -19,7 +25,7 @@ for file in ../fastq/*; do
 		then
 			continue
 		fi
-		fastqc ${files}
+		fastqc ${insidefiles}
 	fi
 done
 
