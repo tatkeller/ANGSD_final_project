@@ -148,7 +148,7 @@ DGE.results <- results(DESeq.ds, independentFiltering = TRUE, alpha = 0.05)
 
 ```{r}
 hist(DGE.results$padj, col="grey", border="white", xlab="", ylab="", main="frequencies of padj\n(all genes)", cex = 0.4)
-DGE.results.sorted <- DGE.results[order(DGE.results$pvalue),]
+DGE.results.sorted <- DGE.results[order(DGE.results$padj),]
 ```
 
 ```{r}
