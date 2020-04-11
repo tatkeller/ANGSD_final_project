@@ -1,3 +1,4 @@
 scripts/*.sh linguist-language=Shell
 scripts/*.bash linguist-language=Shell
 alignments/*.Log.out linguist-language=Text
+reports/*.Rmd linguist-language=R
