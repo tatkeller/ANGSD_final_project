@@ -118,7 +118,7 @@ as.dist(1-corr_coeff, upper = TRUE) %>% as.matrix %>% pheatmap::pheatmap(., main
 ```
 
 ```{r}
-par(mfrow=c(1,2))
+#par(mfrow=c(1,2))
 as.dist(1 - corr_coeff) %>% hclust %>% plot( ., labels = colnames(rlog.norm.counts), main = "rlog transformed read counts")
 as.dist( 1 - cor(log.norm.counts, method = "pearson")) %>% hclust %>% plot( ., labels = colnames(log.norm.counts), main = "no rlog")
 ```
@@ -144,22 +144,28 @@ DESeq.ds <- nbinomWaldTest(DESeq.ds)
 
 ```{r}
 DGE.results <- results(DESeq.ds, independentFiltering = TRUE, alpha = 0.05)
-hist(DGE.results$pvalue, col="grey", border="white", xlab="", ylab="", main="frequencies of p-values\n(all genes)", cex = 0.4)
-DGE.results.sorted <- DGE.results[order(DGE.results$pvalue),]
-```
-```{r}
-table(DGE.results$pvalue < 0.05)
-head(DGE.results.sorted)
-plotCounts(DESeq.ds, gene="HSPA4L", normalized = TRUE)
-plotCounts(DESeq.ds, gene="TPMT", normalized = TRUE)
-plotCounts(DESeq.ds, gene="FRK", normalized = TRUE)
-plotCounts(DESeq.ds, gene="FRK", normalized = TRUE)
-plotCounts(DESeq.ds, gene="RAPGEF5", normalized = TRUE)
-plotCounts(DESeq.ds, gene="ERRFI1", normalized = TRUE)
 ```
 
 ```{r}
-DGEgenes <- rownames(subset(DGE.results.sorted, pvalue < 0.05))
+hist(DGE.results$padj, col="grey", border="white", xlab="", ylab="", main="frequencies of padj\n(all genes)", cex = 0.4)
+DGE.results.sorted <- DGE.results[order(DGE.results$pvalue),]
+```
+
+```{r}
+table(DGE.results$padj < 0.05)
+head(DGE.results.sorted)
+plotCounts(DESeq.ds, gene="ORM1", normalized = TRUE)
+plotCounts(DESeq.ds, gene="C1S", normalized = TRUE)
+plotCounts(DESeq.ds, gene="TPMT", normalized = TRUE)
+plotCounts(DESeq.ds, gene="FGFBP2", normalized = TRUE)
+plotCounts(DESeq.ds, gene="DST", normalized = TRUE)
+plotCounts(DESeq.ds, gene="AEBP1", normalized = TRUE)
+plotCounts(DESeq.ds, gene="HSPA4L", normalized = TRUE)
+
+```
+
+```{r}
+DGEgenes <- rownames(subset(DGE.results.sorted, padj < 0.05))
 rlog.dge <- DESeq.rlog[DGEgenes,] %>% assay
 library(pheatmap)
 pheatmap(rlog.dge, scale="none", show_rownames = FALSE, main = "DGE (no scaling)")
