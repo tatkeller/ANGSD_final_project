@@ -8,5 +8,5 @@
 
 spack load -r py-multiqc
 
-multiqc -o ../multiqc/starResults/  .
+multiqc -o ../multiqc/starResults/  ../alignments/
 

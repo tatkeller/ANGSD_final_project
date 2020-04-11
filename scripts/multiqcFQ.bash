@@ -8,5 +8,5 @@
 
 spack load -r py-multiqc
 
-multiqc -o ../multiqc/fastqResults/  .
+multiqc -o ../multiqc/fastqResults  ../fastq/
 

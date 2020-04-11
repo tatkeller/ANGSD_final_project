@@ -8,5 +8,5 @@
 
 spack load -r py-multiqc
 
-multiqc -o ../multiqc/fcResults/  .
+multiqc -o ../multiqc/fcResults/  ../featureCounts/
 
