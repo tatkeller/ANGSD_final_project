@@ -6,7 +6,9 @@
 #SBATCH --job-name=multiqc
 #SBATCH --mem=10G
 
-spack load -r py-multiqc
+# spack load -r py-multiqc
 
-multiqc .
+spack load singularity@2.6.0
+
+singularity exec /athena/angsd/scratch/simg/multiqc-1.8.simg multiqc .
 
