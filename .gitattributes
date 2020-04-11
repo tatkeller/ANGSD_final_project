@@ -2,3 +2,5 @@ scripts/*.sh linguist-language=Shell
 scripts/*.bash linguist-language=Shell
 alignments/*.Log.out linguist-language=Text
 reports/*.Rmd linguist-language=R
+featureCounts/*.txt linguist-language=Text
+featureCounts/*.txt.summary linguist-language=Text
