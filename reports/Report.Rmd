@@ -1,17 +1,13 @@
 ---
-title: "Report"
+title: "Determining a genetic difference between survivors and victims of Ebola virus disease from RNA-seq data"
 author: "Tate Andrew Keller"
 date: "4/9/2020"
 output: html_document
 ---
 
-# Abstract
-
-
-
 # Introduction
 
-
+Ebola Virus Disease (EBOV) is a disease caused by the ebola virus, causing fatalities in an average of 60% of patients. Recent outbreaks in West Africa and Congo have resulted in great stress on the health care systems in these regions, and led to international concern over the virus's potential to spread globally. Previous EBOV studies have revealed a correlation between host immune response and survival, and genomic analyses of RNA expression in EBOV patients have tracked viral evolution and revealed a correlation between co-infections and mortality in EBOV patients. Further analyses of RNA expression in EBOV patients could reveal genomic advantages in survivors of the disease, and can be used to 
 
 # Results
 
