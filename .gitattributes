@@ -5,4 +5,4 @@ reports/*.Rmd linguist-language=R
 featureCounts/*.txt linguist-language=Text
 featureCounts/*.txt.summary linguist-language=Text
 multiqc_report.html linguist-language=Text
-reports/Report.html linguist-language=Text
+reports/*.html linguist-language=Text
