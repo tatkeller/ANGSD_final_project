@@ -97,39 +97,39 @@ msd_plot$gg + ggtitle("Sequencing depth normalized log2(read counts)") + ylab("s
 
 
 ```{r}
-DESeq.rlog <- rlog(DESeq.ds, blind = TRUE)
+DESeq.vst <- vst(DESeq.ds, blind = TRUE)
 par(mfrow=c(1,2))
 plot(log.norm.counts[,1:2], cex=.1,main = "size factor and log2-transformed")
-plot(assay(DESeq.rlog)[,1],assay(DESeq.rlog)[,2],cex=.1, main = "rlog transformed", xlab = colnames(assay(DESeq.rlog[,1])), ylab = colnames(assay(DESeq.rlog[,2])) )
+plot(assay(DESeq.vst)[,1],assay(DESeq.vst)[,2],cex=.1, main = "vst transformed", xlab = colnames(assay(DESeq.vst[,1])), ylab = colnames(assay(DESeq.vst[,2])) )
 ```
 
 ```{r}
-rlog.norm.counts <- assay(DESeq.rlog)
-msd_plot <- vsn::meanSdPlot( rlog.norm.counts, ranks=FALSE, plot = FALSE)
-msd_plot$gg + ggtitle("rlog transformation") + coord_cartesian(ylim = c(0,3))
+vst.norm.counts <- assay(DESeq.vst)
+msd_plot <- vsn::meanSdPlot( vst.norm.counts, ranks=FALSE, plot = FALSE)
+msd_plot$gg + ggtitle("vst transformation") + coord_cartesian(ylim = c(0,3))
 ```
 
 # PCA
 
-```{r}
-rlog.norm.counts = rlog.norm.counts[ , order(colnames(rlog.norm.counts))]
-corr_coeff <- cor(rlog.norm.counts, method = "pearson")
+```{r fig.width=20, fig.height=30}
+vst.norm.counts = vst.norm.counts[ , order(colnames(vst.norm.counts))]
+corr_coeff <- cor(vst.norm.counts, method = "pearson")
 as.dist(1-corr_coeff, upper = TRUE) %>% as.matrix %>% pheatmap::pheatmap(., main = "Pearson correlation")
 ```
 
 ```{r}
 #par(mfrow=c(1,2))
-as.dist(1 - corr_coeff) %>% hclust %>% plot( ., labels = colnames(rlog.norm.counts), main = "rlog transformed read counts")
-as.dist( 1 - cor(log.norm.counts, method = "pearson")) %>% hclust %>% plot( ., labels = colnames(log.norm.counts), main = "no rlog")
+as.dist(1 - corr_coeff) %>% hclust %>% plot( ., labels = colnames(vst.norm.counts), main = "vst transformed read counts")
+as.dist( 1 - cor(log.norm.counts, method = "pearson")) %>% hclust %>% plot( ., labels = colnames(log.norm.counts), main = "no vst")
 ```
 
 
 ```{r}
-rv <- rowVars(assay(DESeq.rlog))
+rv <- rowVars(assay(DESeq.vst))
 top_variable <- order(rv, decreasing = TRUE)[seq_len(500)]
-pca <- prcomp(t(assay(DESeq.rlog)[top_variable, ]))
+pca <- prcomp(t(assay(DESeq.vst)[top_variable, ]))
 head(pca$x)
-plotPCA(DESeq.rlog)
+plotPCA(DESeq.vst)
 ```
 
 # DE Analysis
@@ -165,11 +165,39 @@ plotCounts(DESeq.ds, gene="HSPA4L", normalized = TRUE)
 ```
 
 ```{r}
-DGEgenes <- rownames(subset(DGE.results.sorted, padj < 0.05))
-rlog.dge <- DESeq.rlog[DGEgenes,] %>% assay
+DGEgenes <- rownames(subset(subset(DGE.results.sorted, padj < 0.05), abs(log2FoldChange) > 2.5 ))
+vst.dge <- DESeq.vst[DGEgenes,] %>% assay
 library(pheatmap)
-pheatmap(rlog.dge, scale="none", show_rownames = FALSE, main = "DGE (no scaling)")
-pheatmap(rlog.dge, scale="row", show_rownames = FALSE, main = "DGE (row-based z-score)")
+```
+
+```{r fig.width=6, fig.height=6}
+pheatmap(vst.dge, scale="row", show_rownames = TRUE, main = "DGE (row-based z-score)")
+```
+
+```{r}
+#DESeq.ds
+#DGE.results
+DGE.results.sortedbyLog2 <- DGE.results[order(DGE.results$log2FoldChange),]
+genesList = subset(subset(DGE.results.sortedbyLog2, padj < 0.05), abs(log2FoldChange) > 1.6 )
+genesList
+```
+
+```{r}
+genesList
+#plotCounts(DESeq.ds, gene=which.max(genesList$log2FoldChange),  normalized = TRUE)
+#plotCounts(DESeq.ds, gene=which.min(genesList$log2FoldChange),  normalized = TRUE)
+
+# More Survival
+plotCounts(DESeq.ds, gene="PRSS8", normalized = TRUE) # Sodium channel regulation https://www.nature.com/articles/hr20096
+plotCounts(DESeq.ds, gene="CKB", normalized = TRUE) # Brain cell homeostasis? 
+plotCounts(DESeq.ds, gene="UCA1", normalized = TRUE) # upregulated in bladder cancer? https://clincancerres.aacrjournals.org/content/12/16/4851
+
+#More fatal
+plotCounts(DESeq.ds, gene="ORM1", normalized = TRUE) # immunosuppression  https://www.ncbi.nlm.nih.gov/gene?Db=gene&Cmd=ShowDetailView&TermToSearch=5004
+plotCounts(DESeq.ds, gene="IL6", normalized = TRUE) # ctyokine storm? 
+plotCounts(DESeq.ds, gene="C7", normalized = TRUE) # Involved in lysis of pathogens, interesting that it is more present in fatal cases # https://www.genecards.org/cgi-bin/carddisp.pl?gene=C7
+plotCounts(DESeq.ds, gene="SAA1", normalized = TRUE) # https://www.nejm.org/doi/10.1056/NEJM199902113400607
+plotCounts(DESeq.ds, gene="CCN1", normalized = TRUE) # big range of functions, including immflamation, could be interesting to look into further https://www.genecards.org/cgi-bin/carddisp.pl?gene=CCN1
 ```
 
 
@@ -179,6 +207,50 @@ plotMA(DGE.results, alpha = 0.05, main = "Test: p.adj.value < 0.05", ylim = c(-4
 
 ```{r}
 library(EnhancedVolcano)
-vp1 <- EnhancedVolcano(DGE.results, lab = rownames(DGE.results), x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "Fatal / Survivor")
+vp1 <- EnhancedVolcano(DGE.results, lab = rownames(DGE.results), x = 'log2FoldChange', y = 'padj', pCutoff = 0.05, title = "Fatal / Survivor", ylim = c(1,7), xlim = c(-5,5))
 print(vp1)
+```
+
+```{r}
+plotCounts(DESeq.ds, gene="PRSS8", normalized = TRUE,transform = TRUE)
+plotCounts(DESeq.ds, gene="CCN1", normalized = TRUE,transform = TRUE)
+plotCounts(DESeq.ds, gene="CKB", normalized = TRUE,transform = TRUE)
+plotCounts(DESeq.ds, gene="SAA1", normalized = TRUE,transform = TRUE)
+plotCounts(DESeq.ds, gene="ORM1", normalized = TRUE,transform = TRUE)
+
+```
+
+```{r}
+library(DESeq2)
+DGE.results.shrnk <- lfcShrink(DESeq.ds, coef = 2, type = "apeglm")
+gene.vector <- row.names(DGE.results.shrnk) %in% DGEgenes %>% as.integer
+names(gene.vector) <- row.names(DGE.results.shrnk)
+```
+
+```{r}
+library(clusterProfiler)
+library(org.Hs.eg.db)
+
+DGEgenes <- rownames(subset(DGE.results.sorted, padj < 0.05))
+
+anno.DGE <- select(org.Hs.eg.db,
+keys = DGEgenes, # original rownames of DGE results
+keytype="SYMBOL", # our rownames are ORF identifiers
+columns=c("ENSEMBL","GENENAME")) 
+
+anno.DGE
+
+ego = enrichGO(gene = DGEgenes,
+               OrgDb         = org.Hs.eg.db,
+               keyType = 'SYMBOL',
+               ont = "BP",
+               pAdjustMethod = "BH",
+               readable      = TRUE)
+
+ego
+
+```
+
+
+
 ```
