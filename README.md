@@ -4,14 +4,14 @@
 
 This is a complete genomics project encompassing genomic alignment, feature counting, QC reporting, and differential expression analysis. The goal was to determine what genetic differences survivors and victims of the Ebola virus disease may have. The dataset used contained the RNA-seq data from survivors and victims of the 2014 West African Ebola outbreak. Fastq files were aligned to hg38. Differential gene analysis was conducted to uncover the genes that had the most significant differences in expression. This analysis revealed victims to have had higher expression levels of genes related to immune response, and ultimately shows how the dataset is limited in both size and temporal detail.    
 
-Tools used:
+### Tools used:
 
-  Bash:
+  #### Bash:
   - STAR
   - subread
   - FastQC
   - MultiQC
-  R:
+  #### R:
   - DESeq2
 
 ## Comments
