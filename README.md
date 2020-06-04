@@ -85,6 +85,8 @@ corr_coeff <- cor(vst.norm.counts, method = "pearson")
 as.dist(1-corr_coeff, upper = TRUE) %>% as.matrix %>% pheatmap::pheatmap(., main = "Pearson correlation")
 ```
 
+![Alt text](/reports/figures/figure1.png)
+
 There was no correlation found between the two groups for the whole genome. This is mostly to be expected, since they are random patients, and aside from genes that have some role in outcome of survival, no difference in genome should be found.
 
 The magnitude and significance of differential gene expression between survivors and victims was calculated for each gene. DESeq calculates p-values of analyses by a Wald statistic, and then uses a correction tool, the Benjamini-Hochberg formula, to adjust the pvalues. 
@@ -103,6 +105,8 @@ hist(DGE.results$padj, col="grey", border="white", xlab="", ylab="", main="frequ
 DGE.results.sorted <- DGE.results[order(DGE.results$padj),]
 ```
 
+![Alt text](/reports/figures/figure2.png)
+
 Few genes score with a low adjusted p value, meaning that few genes are significantly differentially spread (beyond chance). 
 
 An enhanced volcano plot with the threshold for adjusted p-value equal to 0.05 and threshold for log fold change equal to 2.5, reveals 8 genes of interest.
@@ -113,6 +117,9 @@ vp1 <- EnhancedVolcano(DGE.results, lab = rownames(DGE.results), x = 'log2FoldCh
 print(vp1)
 ```
 
+![Alt text](/reports/figures/figure3.png)
+
+
 A heatmap of z-score (standard score) for each gene per sample shows a less random grouping of patients. The bottom left of the heatmap shows a small group of survivors who have extremely high expression of UCA1, PRSS8, IL6, and CKB genes. The right side of the heatmap shows a group of majority victims who have extremely high expression of ORM1, SAA1, CCN1, and C7 genes. This does not show the whole story for both classes though so each gene was further analyzed.
 
 ```{r fig.width=7, fig.height=3}
@@ -122,6 +129,9 @@ vst.dge <- DESeq.vst[DGEgenes,] %>% assay
 pheatmap(vst.dge, scale="row", show_rownames = TRUE, main = "DGE (row-based z-score)")
 ```
 
+![Alt text](/reports/figures/figure4.png)
+
+
 A closer look at the distribution of counts for each gene makes it easier to discover possible explanations.
 
 ```{r}
@@ -130,6 +140,9 @@ plotCounts(DESeq.ds, gene="PRSS8", normalized = TRUE)
 
 ```
 
+![Alt text](/reports/figures/prss8.png)
+
+
 For PRSS8, only 3 of the 55 survivors showed a relatively high expression level. PRSS8 plays a role in sodium channel regulation, and it is possible that very high expression of this gene can increase chances of survival, but more examples would need to support this before finding a possible explanation (Koda, 2009).
 
 
@@ -137,11 +150,17 @@ For PRSS8, only 3 of the 55 survivors showed a relatively high expression level.
 plotCounts(DESeq.ds, gene="CKB", normalized = TRUE) 
 ```
 
+![Alt text](/reports/figures/ckb.png)
+
+
 Similarly, only 3 survivors of 55 had a relatively high expression level. CKB is a creatine kinase that is responsible for energy catalysis in muscles, the brain, and the heart (Mariman, 1989). It is possible that the increased ability to replenish ATP in important organs and muscles could increase chances of survival, but more testing would need to be done to prove this.
 
 ```{r}
 plotCounts(DESeq.ds, gene="UCA1", normalized = TRUE)
 ```
+
+![Alt text](/reports/figures/uca1.png)
+
 
 UCA1 is a gene that is involved in cell proliferation, and is often upregulated in bladder cancer (Xiao-Song, 2006). Interestingly, survivors had higher expression of this gene than victims did.  
 
@@ -149,11 +168,17 @@ UCA1 is a gene that is involved in cell proliferation, and is often upregulated 
 plotCounts(DESeq.ds, gene="ORM1", normalized = TRUE) 
 ```
 
+![Alt text](/reports/figures/orm1.png)
+
+
 ORM1 functions in modulating the immune system response to acute diseases (NCBI, 2020). Victims of EBOV show a much higher increase in expression of this gene as compared to survivors. However, this does not necesarily suggest that lower expression of the gene is correlated with survival, since the immune system may be responding dynamically to an infection, and patients who are struggling to combat the infection may require a higher immune response. That being said, EBOV is known to attack the immune system in humans, and it is possible that this is one gene that increases in expression directly as a result of ebola infection rather than as a response to ebola infection. 
 
 ```{r}
 plotCounts(DESeq.ds, gene="IL6", normalized = TRUE) 
 ```
+
+![Alt text](/reports/figures/il6.png)
+
 
 IL6 is another gene involved in the immune system, and codes for cytokines (Tanaka, 2014). Cytokine storms are often one of the causes of death amongst ebola victims, and depending on when these samples were taken, cytokine levels may be significantly higher in patients in critical condition (Reynard, 2019). As with ORM1, it is hard to conclude whether or not the increase in IL6 amongst fatal patients is a poor immune system strategy in reaction to an ebola infection, or if it is a natural result of a particularly critical case of an ebola infection. 
 
@@ -161,11 +186,17 @@ IL6 is another gene involved in the immune system, and codes for cytokines (Tana
 plotCounts(DESeq.ds, gene="C7", normalized = TRUE) 
 ```
 
+![Alt text](/reports/figures/c7.png)
+
+
 C7 is responsible for cell lysis attacks from the host immune system, typically against bacterial infections (Manuel, 1991). Previous studies have linked undiagnosed bacterial infections as a co-morbidity for EBOV, so it is possible that patients with an increased level of C7 are also fighting a bacterial infection (Reynard, 2019). Like IL6 and ORM1, it is hard to know whether this increase in expression is a poor reaction to ebola that should be supressed, or if it is a result of a critical case of the disease.
 
 ```{r}
 plotCounts(DESeq.ds, gene="SAA1", normalized = TRUE)
 ```
+
+![Alt text](/reports/figures/saa1.png)
+
 
 SAA1 is another protein involved in immune response, and for the same reasoning as the above proteins, more data and studies must be conducted (Husebekk, 1985).
 
@@ -173,6 +204,9 @@ SAA1 is another protein involved in immune response, and for the same reasoning 
 ```{r}
 plotCounts(DESeq.ds, gene="CCN1", normalized = TRUE) 
 ```
+
+![Alt text](/reports/figures/ccn1.png)
+
 
 CCN1 has a wide range of functions in the human body including proliferation and apoptosis, and could be increased in expression as a result of the body reacting to rapid cell death (Lau, 2011).
 
