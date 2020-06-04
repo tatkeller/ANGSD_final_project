@@ -29,11 +29,11 @@ https://www.ebi.ac.uk/ena/browser/view/PRJNA352396
 
 ## Report
 
-# Introduction
+### Introduction
 
 Ebola Virus Disease (EBOV) is a disease caused by the ebola virus, causing fatalities in an average of 60% of patients (Kadanali, 2015). Recent outbreaks in West Africa and Congo have resulted in great stress on the health care systems in these regions, and led to international concern over the virus's potential to spread globally. Previous EBOV studies have revealed a correlation between host immune response and survival, and genomic analyses of RNA expression in EBOV patients have tracked viral evolution and revealed a correlation between co-infections and mortality in EBOV patients (Reynard et al., 2019; Holmes et al., 2016; Carroll et al, 2017). Further analyses of RNA expression in EBOV patients could reveal genomic advantages in survivors of the disease, and can be used to develop treatments to increase the chance of survival amongst EBOV patients. Here, RNA sequence data from victims and survivors of EBOV was examined to determine if there exists significant gene expression differences between the two groups. 
 
-# Results
+### Results
 
 In 2017, a dataset containing RNA-seq data from survivors and victims of the 2014 West African Ebola outbreak was published (ENA: PRJNA352396). Here, 110 random samples from the data set, 55 from survivors and 55 from victims, were used to analyze the difference in transcriptome between survivors and victims. Results show 8 genes that have significant differences in expression levels between survivors and victims. 
 
@@ -41,7 +41,7 @@ Overall, survivors have higher expressions of genes that are not obvious for the
 
 Ultimately this dataset is limited mostly in its size. In order to find a strong correlation between survival and gene expression, millions of samples would need to be collected - but hopefully there will never be a scenario in which that many patients exist. A better way to track this sort of data would be to include other biometrics, co-morbidities, symptoms, days since infection, and treatments that the patient recieved while infected with ebola. Future studies should focus on the genes identified here in the context of other external data.
 
-# Methods and Figures
+### Methods and Figures
 
 A complete repository of workflow and code can be found at: https://github.com/tatkeller/ANGSD_final_project.
 
@@ -210,7 +210,7 @@ plotCounts(DESeq.ds, gene="CCN1", normalized = TRUE)
 
 CCN1 has a wide range of functions in the human body including proliferation and apoptosis, and could be increased in expression as a result of the body reacting to rapid cell death (Lau, 2011).
 
-# Discussion of Limitations
+### Discussion of Limitations
 
 Results show that on average, survivors and victims do contain slight differences in gene expressions, especially amongst genes responsible for immune response. However, much more data is needed to understand the nature of these findings. Additionally, the dataset is limited in that it only reveals the patient outcome, and does not reveal other potentially important outcomes for survival such as age, gender, treatments, etc. 
 
@@ -218,7 +218,7 @@ Some limitations of this study include resources for alignment of human genome s
 
 Further downstream analyses could be done to further the support of the significance of the gene expressions identified here. A GO analysis was attempted, but HG38 is not supported by R packages such as goseq. 
 
-# Key Data Sets
+### Key Data Sets
 
 The key data sets generated are:
 
